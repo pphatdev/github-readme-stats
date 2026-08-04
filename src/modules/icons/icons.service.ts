@@ -36,6 +36,36 @@ export class IconsService {
         '#06B6D4',
     ] as const;
 
+    private readonly ICON_ALIASES: Record<string, string> = {
+        nodedotjs: 'nodejs',
+        node: 'nodejs',
+        vue: 'vuedotjs',
+        ember: 'emberdotjs',
+        emberjs: 'emberdotjs',
+        three: 'threedotjs',
+        threejs: 'threedotjs',
+        chart: 'chartdotjs',
+        chartjs: 'chartdotjs',
+        fly: 'flydotio',
+        flyio: 'flydotio',
+        devto: 'devdotto',
+        gitignoredotio: 'gitignoredotio',
+        gitignore: 'gitignoredotio',
+        js: 'javascript',
+        ts: 'typescript',
+        py: 'python',
+        cpp: 'cplusplus',
+        'c++': 'cplusplus',
+        cs: 'csharp',
+        postgres: 'postgresql',
+        golang: 'go',
+    };
+
+    private resolveIconName(name: string): string {
+        const normalized = name.toLowerCase();
+        return this.ICON_ALIASES[normalized] || normalized;
+    }
+
     constructor() {
         this.iconsDir = path.join(__dirname, '..', '..', '..', 'public', 'assets', 'icons');
         this.svgCache = new Map();
@@ -121,8 +151,8 @@ export class IconsService {
             throw new Error('Invalid effect. Supported: glow, wave');
         }
 
-        if (!Number.isInteger(options.columns) || options.columns < 1 || options.columns > 20) {
-            throw new Error('Invalid columns. Supported range: 1-20');
+        if (!Number.isInteger(options.columns) || options.columns < 1 || options.columns > 40) {
+            throw new Error('Invalid columns. Supported range: 1-40');
         }
 
         const cacheKey = `collection:${options.iconNames.join(',')}:${options.size}:${options.effect || 'none'}:${options.columns}:${(options.colors || []).join(',')}`;
@@ -305,7 +335,8 @@ export class IconsService {
      * Load icon from file system
      */
     private async loadIcon(iconName: string, color?: string): Promise<string> {
-        const iconPath = path.join(this.iconsDir, `${iconName}.svg`);
+        const targetName = this.resolveIconName(iconName);
+        const iconPath = path.join(this.iconsDir, `${targetName}.svg`);
 
         // Verify path doesn't escape icons directory
         const resolvedPath = path.resolve(iconPath);

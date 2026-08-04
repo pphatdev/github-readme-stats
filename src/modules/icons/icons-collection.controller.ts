@@ -81,13 +81,44 @@ export class IconsCollectionController {
             .filter(Boolean);
     }
 
+    private static readonly ICON_ALIASES: Record<string, string> = {
+        nodedotjs: 'nodejs',
+        node: 'nodejs',
+        vue: 'vuedotjs',
+        ember: 'emberdotjs',
+        emberjs: 'emberdotjs',
+        three: 'threedotjs',
+        threejs: 'threedotjs',
+        chart: 'chartdotjs',
+        chartjs: 'chartdotjs',
+        fly: 'flydotio',
+        flyio: 'flydotio',
+        devto: 'devdotto',
+        gitignoredotio: 'gitignoredotio',
+        gitignore: 'gitignoredotio',
+        js: 'javascript',
+        ts: 'typescript',
+        py: 'python',
+        cpp: 'cplusplus',
+        'c++': 'cplusplus',
+        cs: 'csharp',
+        postgres: 'postgresql',
+        golang: 'go',
+    };
+
+    public static resolveIconName(iconName: string): string {
+        const normalized = iconName.toLowerCase();
+        return IconsCollectionController.ICON_ALIASES[normalized] || normalized;
+    }
+
     private static resolveIconPath(iconName: string): string | null {
-        if (!IconsCollectionController.ICON_NAME_REGEX.test(iconName)) {
+        const targetName = IconsCollectionController.resolveIconName(iconName);
+        if (!IconsCollectionController.ICON_NAME_REGEX.test(targetName)) {
             return null;
         }
 
         const resolvedIconsDir = path.resolve(IconsCollectionController.iconsDir);
-        const iconPath = path.resolve(IconsCollectionController.iconsDir, `${iconName}.svg`);
+        const iconPath = path.resolve(IconsCollectionController.iconsDir, `${targetName}.svg`);
 
         if (!iconPath.startsWith(resolvedIconsDir + path.sep) && iconPath !== resolvedIconsDir) {
             return null;
@@ -97,16 +128,20 @@ export class IconsCollectionController {
     }
 
     private static async readBaseIconContent(iconName: string): Promise<string> {
-        const iconPath = IconsCollectionController.resolveIconPath(iconName);
+        const targetName = IconsCollectionController.resolveIconName(iconName);
+        const iconPath = IconsCollectionController.resolveIconPath(targetName);
         if (!iconPath) {
             throw new Error('INVALID_ICON_NAME');
         }
 
-        let pending = IconsCollectionController.pendingLoads.get(iconName);
+        let pending = IconsCollectionController.pendingLoads.get(targetName);
         if (!pending) {
-            pending = fs.readFile(iconPath, 'utf-8');
-            IconsCollectionController.pendingLoads.set(iconName, pending);
-            pending.finally(() => IconsCollectionController.pendingLoads.delete(iconName));
+            pending = fs.readFile(iconPath, 'utf-8').then((content) => {
+                // Strip embedded individual icon popup styles so collection rendering is clean and instant
+                return content.replace(/<style[\s\S]*?<\/style>/gi, '');
+            });
+            IconsCollectionController.pendingLoads.set(targetName, pending);
+            pending.finally(() => IconsCollectionController.pendingLoads.delete(targetName));
         }
 
         return pending;
@@ -264,12 +299,14 @@ export class IconsCollectionController {
         const preset = IconsCollectionController.ICON_SIZE_PRESETS[size];
         const totalColumns = Math.min(columns, iconNames.length);
         const totalRows = Math.ceil(iconNames.length / totalColumns);
+        const waveYOffset = effect === 'wave' ? 10 : 0;
         const width =
             preset.padding * 2 +
             totalColumns * preset.cell +
             (totalColumns - 1) * preset.gap;
         const height =
             preset.padding * 2 +
+            waveYOffset +
             totalRows * preset.cell +
             (totalRows - 1) * preset.gap;
 
@@ -300,6 +337,7 @@ export class IconsCollectionController {
                     (preset.cell - preset.icon) / 2;
                 const y =
                     preset.padding +
+                    waveYOffset +
                     row * (preset.cell + preset.gap) +
                     (preset.cell - preset.icon) / 2;
                 const delay = column * 0.12 + row * 0.08;
@@ -330,7 +368,7 @@ export class IconsCollectionController {
             }),
         );
 
-        return `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="Icon collection">
+        return `<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" overflow="visible" role="img" aria-label="Icon collection">
     <title>Icon collection</title>
     ${defs.length > 0 ? `<defs>
         ${defs.join('\n        ')}
@@ -408,12 +446,13 @@ export class IconsCollectionController {
 
             const resolvedIconNames = (
                 await Promise.all(
-                    normalizedIconNames.map(async (iconName) => {
+                    normalizedIconNames.map(async (rawName) => {
+                        const targetName = IconsCollectionController.resolveIconName(rawName);
                         try {
                             await fs.access(
-                                path.resolve(IconsCollectionController.iconsDir, `${iconName}.svg`),
+                                path.resolve(IconsCollectionController.iconsDir, `${targetName}.svg`),
                             );
-                            return iconName;
+                            return targetName;
                         } catch {
                             return null;
                         }
