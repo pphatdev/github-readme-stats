@@ -26,6 +26,34 @@
       "response": []
     },
     {
+      "name": "Users",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/users?limit=100&offset=0",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users"
+          ],
+          "query": [
+            {
+              "key": "limit",
+              "value": "100"
+            },
+            {
+              "key": "offset",
+              "value": "0"
+            }
+          ]
+        },
+        "description": "List all usernames tracked by the stats service with their GitHub avatar URLs (https://github.com/{username}.png)."
+      },
+      "response": []
+    },
+    {
       "name": "Stats",
       "request": {
         "method": "GET",

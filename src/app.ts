@@ -19,6 +19,7 @@ import { createGraphsRouter } from './modules/graphs/index.js';
 import { createBadgesRouter } from './modules/badges/index.js';
 import { createIconsRouter } from './modules/icons/index.js';
 import { createHealthRouter } from './modules/health/index.js';
+import { createUsersRouter } from './modules/users/index.js';
 
 // Shared middleware
 import { errorHandler, trackRequest } from './shared/middlewares/index.js';
@@ -114,7 +115,8 @@ export function initializeRoutes(
                 graphs: '/graph',
                 badges: '/badges',
                 icons: '/icons',
-                health: '/health'
+                health: '/health',
+                users: '/users'
             }
         });
     });
@@ -127,6 +129,7 @@ export function initializeRoutes(
     app.use('/badges', trackRequest, createBadgesRouter(githubClient, cache, cacheDuration));
     app.use('/icons', createIconsRouter());
     app.use('/health', createHealthRouter(cacheService));
+    app.use('/users', createUsersRouter());
 
     logger.info('Module routes registered');
 }
