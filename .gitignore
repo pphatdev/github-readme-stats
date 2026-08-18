@@ -24,3 +24,6 @@ Thumbs.db
 # Bun
 .bun/
 .env*.local
+
+
+.claude

@@ -18,11 +18,9 @@ function ensureSqliteSchema(db: import('better-sqlite3').Database): void {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT NOT NULL,
             url TEXT NOT NULL,
+            user_agent TEXT,
             created_at INTEGER
         );
-
-        CREATE UNIQUE INDEX IF NOT EXISTS uq_stats_request_url
-        ON stats_requests (url);
 
         CREATE TABLE IF NOT EXISTS visitor_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -51,6 +49,26 @@ function ensureSqliteSchema(db: import('better-sqlite3').Database): void {
             total_joined_years INTEGER,
             updated_at INTEGER
         );
+    `);
+
+    migrateStatsRequests(db);
+}
+
+function migrateStatsRequests(db: import('better-sqlite3').Database): void {
+    // Drop the legacy unique-on-url index so repeat requests (bots, agents,
+    // multiple browsers hitting the same card URL) are not collapsed into one row.
+    db.exec(`DROP INDEX IF EXISTS uq_stats_request_url;`);
+
+    // Add user_agent column to pre-existing tables. SQLite lacks
+    // "ADD COLUMN IF NOT EXISTS", so probe the schema first.
+    const columns = db.prepare(`PRAGMA table_info(stats_requests);`).all() as Array<{ name: string }>;
+    if (!columns.some((c) => c.name === 'user_agent')) {
+        db.exec(`ALTER TABLE stats_requests ADD COLUMN user_agent TEXT;`);
+    }
+
+    db.exec(`
+        CREATE INDEX IF NOT EXISTS ix_stats_request_url ON stats_requests (url);
+        CREATE INDEX IF NOT EXISTS ix_stats_request_username ON stats_requests (username);
     `);
 }
 

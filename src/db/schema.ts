@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, uniqueIndex, index } from "drizzle-orm/sqlite-core";
 
 export const statsRequests = sqliteTable(
     "stats_requests",
@@ -6,11 +6,13 @@ export const statsRequests = sqliteTable(
         id: integer("id").primaryKey({ autoIncrement: true }),
         username: text("username").notNull(),
         url: text("url").notNull(),
+        user_agent: text("user_agent"),
         created_at: integer("created_at"),
     },
     (table) => {
         return {
-            uqStatsRequestUrl: uniqueIndex("uq_stats_request_url").on(table.url),
+            ixStatsRequestUrl: index("ix_stats_request_url").on(table.url),
+            ixStatsRequestUsername: index("ix_stats_request_username").on(table.username),
         };
     },
 );

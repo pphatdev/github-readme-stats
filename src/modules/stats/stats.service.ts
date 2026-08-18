@@ -5,8 +5,6 @@
 
 import { GitHubClient } from '../../shared/utils/github-client.js';
 import { CardRenderer } from '../../shared/components/card-renderer.js';
-import { db } from '../../db/index.js';
-import { statsRequests } from '../../db/schema.js';
 import { createLogger } from '../../shared/logs/logger.js';
 import type { StatsQueryParams, StatsCache, PngCache } from './stats.types.js'; import type { StatsCardOptions } from './stats.types.js';
 
@@ -40,25 +38,6 @@ export class StatsService {
         this.pendingRequests = new Map();
         this.pendingWebpRequests = new Map();
         this.cacheDuration = cacheDuration;
-    }
-
-    /**
-     * Log stats request to database
-     */
-    async logStatsRequest(username: string, url: string): Promise<void> {
-        try {
-            await db.insert(statsRequests)
-                .values({ username, url, created_at: Date.now() })
-                .onConflictDoUpdate({
-                    target: statsRequests.url,
-                    set: {
-                        username,
-                        created_at: Date.now(),
-                    },
-                });
-        } catch (err) {
-            logger.error('Failed to log stats request', err as Error, { username, url });
-        }
     }
 
     /**

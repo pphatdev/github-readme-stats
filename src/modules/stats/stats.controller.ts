@@ -26,24 +26,8 @@ export class StatsController {
                 return;
             }
 
-            // Log request to database
-            const normalizedParams = Object.entries(req.query)
-                .flatMap(([key, value]) => {
-                    if (value === undefined || value === null) return [];
-                    if (Array.isArray(value)) {
-                        return value.map((item) => [key, String(item)]);
-                    }
-                    return [[key, String(value)]];
-                })
-                .sort(([aKey, aVal], [bKey, bVal]) => {
-                    const keyCompare = aKey.localeCompare(bKey);
-                    return keyCompare !== 0 ? keyCompare : aVal.localeCompare(bVal);
-                });
-
-            const queryString = new URLSearchParams(normalizedParams as any).toString();
-            const normalizedEndpoint = queryString ? `${req.path}?${queryString}` : req.path;
-
-            await this.statsService.logStatsRequest(params.username, normalizedEndpoint);
+            // Request tracking is handled by the shared `trackRequest` middleware
+            // in app.ts — see src/shared/middlewares/track-request.middleware.ts.
 
             // Determine format based on user agent
             const userAgent = req.get('user-agent') || '';

@@ -21,7 +21,7 @@ import { createIconsRouter } from './modules/icons/index.js';
 import { createHealthRouter } from './modules/health/index.js';
 
 // Shared middleware
-import { errorHandler } from './shared/middlewares/index.js';
+import { errorHandler, trackRequest } from './shared/middlewares/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -119,11 +119,12 @@ export function initializeRoutes(
         });
     });
 
-    // Mount module routes
-    app.use('/stats', createStatsRouter(githubClient, cache, cacheDuration));
-    app.use('/languages', createLanguagesRouter(githubClient, cache, cacheDuration));
-    app.use('/graph', createGraphsRouter(githubClient, cache, cacheDuration));
-    app.use('/badges', createBadgesRouter(githubClient, cache, cacheDuration));
+    // Mount module routes. `trackRequest` logs every card request (including
+    // programmatic/bot user-agents) into `stats_requests` for the admin dashboard.
+    app.use('/stats', trackRequest, createStatsRouter(githubClient, cache, cacheDuration));
+    app.use('/languages', trackRequest, createLanguagesRouter(githubClient, cache, cacheDuration));
+    app.use('/graph', trackRequest, createGraphsRouter(githubClient, cache, cacheDuration));
+    app.use('/badges', trackRequest, createBadgesRouter(githubClient, cache, cacheDuration));
     app.use('/icons', createIconsRouter());
     app.use('/health', createHealthRouter(cacheService));
 

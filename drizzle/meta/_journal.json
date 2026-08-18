@@ -22,6 +22,13 @@
       "when": 1775284238524,
       "tag": "0002_stats_requests",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1785283200000,
+      "tag": "0003_stats_requests_user_agent",
+      "breakpoints": true
     }
   ]
 }
