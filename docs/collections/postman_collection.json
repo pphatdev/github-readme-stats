@@ -26,12 +26,12 @@
       "response": []
     },
     {
-      "name": "Users",
+      "name": "Users - List (paginated)",
       "request": {
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{baseUrl}}/users?limit=100&offset=0",
+          "raw": "{{baseUrl}}/users?page=1&limit=30",
           "host": [
             "{{baseUrl}}"
           ],
@@ -40,16 +40,44 @@
           ],
           "query": [
             {
+              "key": "page",
+              "value": "1",
+              "description": "1-based page number. Takes precedence over `offset` when both are supplied."
+            },
+            {
               "key": "limit",
-              "value": "100"
+              "value": "30",
+              "description": "Items per page. Default 30, max 500."
             },
             {
               "key": "offset",
-              "value": "0"
+              "value": "0",
+              "description": "Zero-based offset. Ignored when `page` is provided.",
+              "disabled": true
             }
           ]
         },
-        "description": "List all usernames tracked by the stats service with their GitHub avatar URLs (https://github.com/{username}.png)."
+        "description": "List all usernames tracked by the stats service with their GitHub avatar URLs (https://github.com/{username}.png). Response includes pagination metadata: total, limit, offset, page, total_pages, has_next, has_prev."
+      },
+      "response": []
+    },
+    {
+      "name": "Users - Get badge by username",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/users/pphatdev/badge",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users",
+            "pphatdev",
+            "badge"
+          ]
+        },
+        "description": "Return the stored badge counters for a single user from the `badges` table (visitors, repositories, followers, total_stars, total_commits, total_issues, total_pull_requests, updated_at, etc.). Returns 404 if the user has no badge row yet."
       },
       "response": []
     },

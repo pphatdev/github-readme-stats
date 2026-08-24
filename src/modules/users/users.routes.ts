@@ -21,5 +21,13 @@ export function createUsersRouter(): Router {
         await usersController.listUsers(req, res);
     });
 
+    /**
+     * @route GET /users/:username/badge
+     * @desc Return the stored badge counters for a single user from the `badges` table
+     */
+    router.get('/:username/badge', async (req, res) => {
+        await usersController.getUserBadge(req, res);
+    });
+
     return router;
 }
